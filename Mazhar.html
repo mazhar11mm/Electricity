@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بژمێری یەکەی بەکارهێنراوی ووزەی کارەبا</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color:darkblue;
+            padding: 10px;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            color: black;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 8px;
+            color: black;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            flex: 1;
+            margin-left: 10px;
+        }
+        .form-group:last-child {
+            margin-left: 0;
+        }
+        .result {
+            margin-top: 10px;
+            background: #e4e4e4;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color:darkblue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color:darkblue;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .checkbox-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .checkbox-group label {
+          font-size: 11px;
+         
+        }
+        .high-reading {
+            color: red;
+            font-weight: bold;
+        }
+        .consumed-units {
+            color: red;
+        }
+        .total-cost {
+            color: green;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        th, td {
+            padding: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background-color: lightgreen; /* Light green header */
+            color: black; /* Black text for header */
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                color: black;
+                background-color: white;
+            }
+th{
+                background-color: lightgreen !important;
+                -webkit-print-color-adjust: exact; /* Ensures color is retained during print */
+
+}
+            .container {
+                box-shadow: none;
+            }
+            .high-reading, .consumed-units {
+                color: red;
+             /* Retain colored texts */
+            }
+            th {
+                background-color: lightgreen; /* Retain light green header in print */
+                color: black; /* Black text for header in print */
+            }
+            .form-group, .checkbox-group, button {
+                display: none; /* Hide form inputs and buttons when printing */
+            }
+            h2 {
+                display: block; /* Ensure the heading is visible in print */
+                color: black;
+            }
+.no-print{ display: none;
+}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="color:purple;">بژمێری یەکەی بەکارهێنراوی ووزەی کارەبا</h2>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="previousReading">خوێندنەوەی پێشوو</label>
+                <input type="number" id="previousReading" placeholder="بڕی خوێندنەوەی پێشوو بنوسە" required>
+            </div>
+            <div class="form-group">
+                <label for="previousDate">بەرواری پێشوو</label>
+                <input type="date" id="previousDate" required>
+          
+  </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="lastReading">کۆتا خوێندنەوە</label>
+                <input type="number" id="lastReading" placeholder="بڕی کۆتا خوێندنەوە بنوسە" required>
+            </div>
+            <div class="form-group">
+                <label for="lastDate">کۆتا بەروار</label>
+                <input type="date" id="lastDate" required>
+            </div>
+        
+             </div>
+        <div class="checkbox-group">
+
+       <input type="checkbox" id="mallan" onclick="onlyOne(this)") />
+
+            <label for="mallan">ماڵان</label>
+       
+            <input type="checkbox" id="dukan" onclick="onlyOne(this)") />
+
+            <label for="dukan">بازرگانی</label>
+       
+
+    <input type="checkbox" id="kshtukaly" onclick="onlyOne(this)"/>
+            <label for="kshtukaly">کشتوکاڵی</label>
+
+<input type="checkbox" id="mery" onclick="onlyOne(this)"/>
+            <label for="mery">میری</label>
+
+<input type="checkbox" id="peshasazy" onclick="onlyOne(this)"/>
+           
+ <label for="peshasazy">پیشەسازی Kv 0.416</label>
+
+<input type="checkbox" id="peshasazy_1" onclick="onlyOne(this)"/>
+ 
+ <label for="peshasazy_1">پیشەسازی Kv 132,33,11</label>
+
+
+ </div>
+
+        <div id="error" class="error"></div>
+        
+        <button onclick="calculateCost()">ژماردن</button>
+        <button onclick="printResults()">چاپ</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+
+    <script>
+
+function onlyOne(checkbox) {
+  var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+ checkboxes.forEach((item) => {
+    if (item !== checkbox) item.checked = false;
+  });
+}
+       
+
+      
+
+  function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function roundToNearest(value, roundTo) {
+            return Math.round(value / roundTo) * roundTo;
+        }
+
+        function calculateCost() 
+{
+
+    
+            const prevReading = parseFloat(document.getElementById('previousReading').value);
+            const lastReading = parseFloat(document.getElementById('lastReading').value);
+            const prevDate = new Date(document.getElementById('previousDate').value);
+            const lastDate = new Date(document.getElementById('lastDate').value);       
+
+ 
+           
+            const isMallan = document.getElementById('mallan').checked;
+           
+            const isDukan = document.getElementById('dukan').checked;
+            const isKshtukaly = document.getElementById('kshtukaly').checked;
+            const isMery = document.getElementById('mery').checked;
+            const isPeshasazy = document.getElementById('peshasazy').checked;
+            const isPeshasazy_1 = document.getElementById('peshasazy_1').checked;
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+
+            // Clear previous error messages
+            errorDiv.innerHTML = '';
+            resultDiv.innerHTML = '';
+
+if (!prevReading || !lastReading) {
+                errorDiv.innerHTML = 'خوێندنەوەی پێشوو پاشان خوێندنەوەی ئێستا بنووسە.';
+                return;
+            }
+ 
+ // Validation: Check if the last reading is less than the previous reading
+            if (lastReading < prevReading && !(prevReading >= 70000 && lastReading <= 40000)) {
+                errorDiv.innerHTML = 'خوێندنەوەی ئێستا نابێت کەمتر بێت لە خوێندنەوەی  پێشوو چونکە یەکەی بەکارهێنراو سالب دەبێت.';
+                return;
+            }
+ if (prevDate > lastDate) {
+                errorDiv.innerHTML = 'نابێت کۆتا بەروار کەمتر بێت لە بەرواری پێشوو.';
+                return;
+            }
+    
+
+    
+
+           
+            // New condition for readings crossing 99999
+            let consumedUnits;
+            if (prevReading >= 70000 && lastReading <= 40000) {
+                consumedUnits = lastReading + 99999 - prevReading;
+                resultDiv.innerHTML += "<p class='high-reading'>اکمال دەورە.</p>";
+            } else {
+                consumedUnits = lastReading - prevReading;
+            }
+
+            const days = (lastDate - prevDate) / (1000 * 3600 * 24); // convert milliseconds to days
+
+            // Check for high consumption condition ((consumedUnits / days) * 30) >= 1800
+
+if (days==0 && consumedUnits==0) {
+                errorDiv.innerHTML = 'داخراو.';
+                return;
+            }
+           
+if (!days || days==0) {
+                errorDiv.innerHTML = 'هەڵە لە هەڵبژاردنی بەروار هەیە.';
+                return;
+            }
+
+
+
+
+            let totalCost = 0;
+            let resultString = `<p class="high-reading">یەکەی بەکارهێنراو :  ${formatNumber(consumedUnits)} یەکەیە لە ماوەی ${days} ڕوژدا = ${(days/30.44).toFixed(3)} مانگ = ${(days/365.25).toFixed(3)} ساڵ</p>`;
+            let enteredValuesTable = `
+                <table>
+                    <tr><th>خوێندنەوەی پێشوو</th><td>${formatNumber(prevReading)}</td></tr>
+                    <tr><th>بەرواری پێشوو</th><td>${prevDate.toLocaleDateString()}</td></tr>
+                    <tr><th>کۆتا خوێندنەوە</th><td>${formatNumber(lastReading)}</td></tr>
+                    <tr><th>کۆتا بەروار</th><td>${lastDate.toLocaleDateString()}</td></tr>
+                </table>
+            `;
+            let breakdownTable = `<table><tr><th>پۆلێنی نرخەکان</th><th>یەکەی بەکار هاتو</th><th>نرخ</th></tr>`;
+
+
+
+            // If Dukan is checked, multiply consumed units by 156
+        
+             if (isDukan) {
+
+ const dukanCost=consumedUnits * 156;
+                totalCost += dukanCost;
+                breakdownTable += `<tr><td>156</td><td>${formatNumber(consumedUnits)}</td><td>${formatNumber(Math.floor(dukanCost))}</td></tr>`;
+   const originalTotalCost = Math.floor(totalCost);
+            const roundedTotalCost = roundToNearest(originalTotalCost, 250);
+            const difference = originalTotalCost - roundedTotalCost;
+
+                resultDiv.innerHTML += enteredValuesTable;
+                resultDiv.innerHTML += resultString;
+                breakdownTable += `</table>`;
+                resultDiv.innerHTML += breakdownTable;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی نرخی بنەڕەتی: ${formatNumber(Math.floor(dukanCost))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی پوختەی نرخ: ${formatNumber(roundToNearest(Math.floor(dukanCost), 250))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">وردە: ${formatNumber(difference)} دینار.</h3>`;
+                return;
+            }
+
+
+
+            if (isKshtukaly) {
+                const kshtukalCost = consumedUnits * 36;
+                totalCost += kshtukalCost;
+                breakdownTable += `<tr><td>36</td><td>${formatNumber(consumedUnits)}</td><td>${formatNumber(Math.floor(kshtukalCost))}</td></tr>`;
+   const originalTotalCost = Math.floor(totalCost);
+            const roundedTotalCost = roundToNearest(originalTotalCost, 250);
+            const difference = originalTotalCost - roundedTotalCost;
+
+                resultDiv.innerHTML += enteredValuesTable;
+                resultDiv.innerHTML += resultString;
+                breakdownTable += `</table>`;
+                resultDiv.innerHTML += breakdownTable;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی نرخی بنەڕەتی: ${formatNumber(Math.floor(kshtukalCost))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی پوختەی نرخ: ${formatNumber(roundToNearest(Math.floor(kshtukalCost), 250))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">وردە: ${formatNumber(difference)} دینار.</h3>`;
+                return;
+            }
+
+ if (isMery) {
+                const meryCost = consumedUnits * 80;
+                totalCost += meryCost;
+                breakdownTable += `<tr><td>80</td><td>${formatNumber(consumedUnits)}</td><td>${formatNumber(Math.floor(meryCost))}</td></tr>`;
+   const originalTotalCost = Math.floor(totalCost);
+            const roundedTotalCost = roundToNearest(originalTotalCost, 250);
+            const difference = originalTotalCost - roundedTotalCost;
+
+                resultDiv.innerHTML += enteredValuesTable;
+                resultDiv.innerHTML += resultString;
+                breakdownTable += `</table>`;
+                resultDiv.innerHTML += breakdownTable;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی نرخی بنەڕەتی: ${formatNumber(Math.floor(meryCost))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی پوختەی نرخ: ${formatNumber(roundToNearest(Math.floor(meryCost), 250))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">وردە: ${formatNumber(difference)} دینار.</h3>`;
+                return;
+            }
+ if (isPeshasazy) {
+                const peshasazyCost = consumedUnits * 144;
+                totalCost += peshasazyCost;
+                breakdownTable += `<tr><td>144</td><td>${formatNumber(consumedUnits)}</td><td>${formatNumber(Math.floor(peshasazyCost))}</td></tr>`;
+   const originalTotalCost = Math.floor(totalCost);
+            const roundedTotalCost = roundToNearest(originalTotalCost, 250);
+            const difference = originalTotalCost - roundedTotalCost;
+
+                resultDiv.innerHTML += enteredValuesTable;
+                resultDiv.innerHTML += resultString;
+                breakdownTable += `</table>`;
+                resultDiv.innerHTML += breakdownTable;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی نرخی بنەڕەتی: ${formatNumber(Math.floor(peshasazyCost))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی پوختەی نرخ: ${formatNumber(roundToNearest(Math.floor(peshasazyCost), 250))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">وردە: ${formatNumber(difference)} دینار.</h3>`;
+                return;
+            }
+if (isPeshasazy_1) {
+                const peshasazyCost_1 = consumedUnits * 120;
+                totalCost += peshasazyCost_1;
+                breakdownTable += `<tr><td>120</td><td>${formatNumber(consumedUnits)}</td><td>${formatNumber(Math.floor(peshasazyCost_1))}</td></tr>`;
+   const originalTotalCost = Math.floor(totalCost);
+            const roundedTotalCost = roundToNearest(originalTotalCost, 250);
+            const difference = originalTotalCost - roundedTotalCost;
+
+                resultDiv.innerHTML += enteredValuesTable;
+                resultDiv.innerHTML += resultString;
+                breakdownTable += `</table>`;
+                resultDiv.innerHTML += breakdownTable;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی نرخی بنەڕەتی: ${formatNumber(Math.floor(peshasazyCost_1))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی پوختەی نرخ: ${formatNumber(roundToNearest(Math.floor(peshasazyCost_1), 250))} دینار.</h3>`;
+                resultDiv.innerHTML += `<h3 class="total-cost">وردە: ${formatNumber(difference)} دینار.</h3>`;
+                return;
+            }
+
+
+
+if(isMallan)
+{
+ if ((consumedUnits / days) * 30 >= 1800) {
+                resultDiv.innerHTML += "<p class='high-reading'>ئەم خوێندنەوەیە بەرزە چونکە زیاتر لە 1800 یەکە بەکار هێنراوە لە ماوەی مانگێک یان کەمتر لە مانگێکدا.</p>";
+            }
+            // Constants for different units
+            const unitRates = [18, 24, 42, 72, 90, 180, 240];
+            const periodUnits = [15, 15, 20, 20, 30, 66.66666667, consumedUnits]; // Unit consumption limits for each rate
+            let remainingUnits = consumedUnits;
+
+            // Calculate cost based on each unit rate
+            for (let i = 0; i < unitRates.length; i++) {
+                let maxUnits = Math.min(days * periodUnits[i], remainingUnits);
+                let cost = maxUnits * unitRates[i];
+                totalCost += cost;
+                remainingUnits -= maxUnits;
+                breakdownTable += `<tr><td>${unitRates[i]}</td><td>${formatNumber(Math.floor(maxUnits))}</td><td>${formatNumber(Math.floor(cost))}</td></tr>`;
+
+                if (remainingUnits <= 0) break;
+            }
+
+            breakdownTable += `</table>`;
+            resultDiv.innerHTML += enteredValuesTable;
+            resultDiv.innerHTML += resultString;
+            resultDiv.innerHTML += breakdownTable;
+
+            const originalTotalCost = Math.floor(totalCost);
+            const roundedTotalCost = roundToNearest(originalTotalCost, 250);
+            const difference = originalTotalCost - roundedTotalCost;
+
+            // Display the original total cost, rounded total cost, and the difference
+            resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی نرخی بنەڕەتی: ${formatNumber(originalTotalCost)} دینار.</h3>`;
+            resultDiv.innerHTML += `<h3 class="total-cost">کۆی گشتی پوختەی نرخ: ${formatNumber(roundedTotalCost)} دینار.</h3>`;
+            resultDiv.innerHTML += `<h3 class="total-cost">وردە: ${formatNumber(difference)} دینار.</h3>`;
+    return;
+}
+}
+
+        // Print the result and table, excluding form elements
+        function printResults() {
+            const originalContents = document.body.innerHTML;
+            const printContents = document.querySelector('.result').innerHTML;
+            const titleContents = document.querySelector('h2').outerHTML;
+            const containerStyles = document.querySelector('.container').getAttribute('style');
+            
+            document.body.innerHTML = `<div class="container" style="${containerStyles}">${titleContents}${printContents}</div>`;
+            window.print();
+            document.body.innerHTML = originalContents;
+        }
+    </script>
+<h4 align="center"class="no-print">دروستکراوە لە لایەن : مەزهەر عبدالقادر محمد</h4>
+<h4 align="center"class="no-print">بەڕێوەبەرایەتی دابەشکردنی کارەبای سیدصادق</h4>
+</body>
+</html>
